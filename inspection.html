@@ -433,193 +433,280 @@
     </div>
 
     <script>
-        // ============================================================
-        // 1. 数据操作
-        // ============================================================
-        function getData() {
-            const data = localStorage.getItem('dormitory_inspections');
-            return data ? JSON.parse(data) : [];
-        }
+     // ============================================================
+// 1. 数据操作
+// ============================================================
+function getData() {
+    const data = localStorage.getItem('dormitory_inspections');
+    return data ? JSON.parse(data) : [];
+}
 
-        function saveData(data) {
-            localStorage.setItem('dormitory_inspections', JSON.stringify(data));
-        }
+function saveData(data) {
+    localStorage.setItem('dormitory_inspections', JSON.stringify(data));
+}
 
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-        }
+function generateId() {
+    return Date.now().ToString(36) + Math.random().ToString(36).substring(2, 6);
+}
 
-        // ============================================================
-        // 2. 更新统计
-        // ============================================================
-        function updateStats() {
-            const data = getData();
-            document.getElementById('totalCount').textContent = data.length;
-            const pending = data.filter(item => item.status === '待跟进' || item.status === '跟进中').length;
-            document.getElementById('pendingCount').textContent = pending;
-            const violations = data.filter(item => item.issueType !== '正常' && item.result === '异常').length;
-            document.getElementById('violationCount').textContent = violations;
-            document.getElementById('listCount').textContent = `共 ${data.length} 条`;
-        }
-
-        // ============================================================
-        // 3. 渲染列表
-        // ============================================================
-        function renderList() {
-            const data = getData();
-            const container = document.getElementById('inspectionList');
-            updateStats();
-
-            if (data.length === 0) {
-                container.innerHTML = `<div class="empty-tip">暂无巡检记录，开始第一次巡检吧 🔍</div>`;
-                return;
+// ============================================================
+// 2. 控制"其他"输入框的显示/隐藏
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // 问题点：选择"其他"时显示输入框
+    const issueType = document.getElementById('issueType');
+    const otherIssueGroup = document.getElementById('otherIssueGroup');
+    if (issueType) {
+        issueType.addEventListener('change', function() {
+            if (this.value === '其他') {
+                otherIssueGroup.style.display = 'block';
+            } else {
+                otherIssueGroup.style.display = 'none';
             }
-
-            const sorted = [...data].reverse();
-            let html = '';
-            sorted.forEach(item => {
-                // 违规次数样式
-                let levelClass = 'level-first';
-                if (item.violationLevel === '再犯') levelClass = 'level-repeat';
-                else if (item.violationLevel === '严重再犯') levelClass = 'level-serious';
-
-                // 状态样式
-                let statusClass = 'status-pending';
-                let statusText = '待跟进';
-                if (item.status === '已处理') {
-                    statusClass = 'status-done';
-                    statusText = '已处理';
-                } else if (item.status === '跟进中') {
-                    statusClass = 'status-follow';
-                    statusText = '跟进中';
-                }
-
-                // 结果图标
-                const resultIcon = item.result === '正常' ? '✅' : '⚠️';
-
-                html += `
-                        <div class="inspection-item">
-                            <div class="top-row">
-                                <div>
-                                    <span class="room-info">
-                                        ${item.room}
-                                        <span class="bed">${item.bed ? '· ' + item.bed : ''}</span>
-                                    </span>
-                                    <span class="issue-type">${item.issueType}</span>
-                                    <span class="violation-level ${levelClass}">${item.violationLevel}</span>
-                                </div>
-                                <div>
-                                    <span class="status-tag ${statusClass}">${statusText}</span>
-                                    <span style="margin-left:8px;font-size:14px;">${resultIcon} ${item.result}</span>
-                                </div>
-                            </div>
-                            <div class="detail-row">
-                                <span class="label">处理方式：</span>${item.action}
-                                ${item.followUp ? `&nbsp;|&nbsp; <span class="label">跟进：</span>${item.followUp}` : ''}
-                            </div>
-                            <div class="meta-row">
-                                <span>👤 ${item.inspector}</span>
-                                <span>📅 ${item.date}</span>
-                                <span>🆔 ${item.id}</span>
-                                <button class="btn-status" data-id="${item.id}" style="background:none;border:1px solid #d0d7de;border-radius:16px;padding:0 12px;font-size:12px;cursor:pointer;color:#4a5a6e;">切换状态</button>
-                            </div>
-                        </div>
-                    `;
-            });
-
-            container.innerHTML = html;
-
-            document.querySelectorAll('.btn-status').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const id = this.dataset.id;
-                    toggleStatus(id);
-                });
-            });
-        }
-
-        // ============================================================
-        // 4. 切换状态
-        // ============================================================
-        function toggleStatus(id) {
-            const data = getData();
-            const item = data.find(d => d.id === id);
-            if (!item) return;
-            const map = { '待跟进': '跟进中', '跟进中': '已处理', '已处理': '待跟进' };
-            item.status = map[item.status] || '待跟进';
-            saveData(data);
-            renderList();
-        }
-
-        // ============================================================
-        // 5. 提交表单
-        // ============================================================
-        document.getElementById('inspectionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const room = document.getElementById('room').value.trim();
-            const bed = document.getElementById('bed').value.trim();
-            const issueType = document.getElementById('issueType').value;
-            const violationLevel = document.getElementById('violationLevel').value;
-            const action = document.getElementById('action').value;
-            const result = document.getElementById('result').value;
-            const followUp = document.getElementById('followUp').value.trim();
-            const inspector = document.getElementById('inspector').value.trim();
-            let date = document.getElementById('inspectionDate').value;
-
-            if (!room || !issueType || !inspector) {
-                alert('请完整填写房号、问题点和巡检人！');
-                return;
-            }
-
-            if (!date) {
-                const today = new Date();
-                date = today.toISOString().split('T')[0];
-            }
-
-            const newItem = {
-                id: generateId(),
-                room,
-                bed: bed || '未指定',
-                issueType,
-                violationLevel,
-                action,
-                result,
-                followUp: followUp || '无',
-                inspector,
-                date,
-                status: result === '正常' ? '已处理' : '待跟进',
-                createdAt: new Date().toISOString()
-            };
-
-            const data = getData();
-            data.push(newItem);
-            saveData(data);
-
-            // 清空表单（保留部分字段方便连续录入）
-            document.getElementById('room').value = '';
-            document.getElementById('bed').value = '';
-            document.getElementById('issueType').value = '';
-            document.getElementById('followUp').value = '';
-            document.getElementById('inspector').value = '';
-            document.getElementById('inspectionDate').value = '';
-            document.getElementById('result').value = '正常';
-            document.getElementById('violationLevel').value = '初犯';
-            document.getElementById('action').value = '初次警告';
-
-            renderList();
-            alert('✅ 巡检记录提交成功！');
         });
+    }
 
-        // ============================================================
-        // 6. 初始化：设置今日日期
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-            document.getElementById('inspectionDate').value = dateStr;
-            renderList();
+    // 处理方式：选择"其他处理"时显示输入框
+    const action = document.getElementById('action');
+    const otherActionGroup = document.getElementById('otherActionGroup');
+    if (action) {
+        action.addEventListener('change', function() {
+            if (this.value === '其他处理') {
+                otherActionGroup.style.display = 'block';
+            } else {
+                otherActionGroup.style.display = 'none';
+            }
         });
+    }
+
+    // 图片上传预览
+    const photoUpload = document.getElementById('photoupload');
+    const photoPreview = document.getElementById('photoPreview');
+    if (photoUpload) {
+        photoUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    photoPreview.innerHTML = '<img src="' + event.target.result + '" style="max-width:150px; max-height:150px; border-radius:8px; border:1px solid #e8ecf1;" />';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // 设置今日日期
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    const dateInput = document.getElementById('inspectionDate');
+    if (dateInput) {
+        dateInput.value = dateStr;
+    }
+
+    // 渲染列表
+    renderList();
+});
+
+// ============================================================
+// 3. 更新统计
+// ============================================================
+function updateStats() {
+    const data = getData();
+    document.getElementById('totalCount').textContent = data.length;
+    const pending = data.filter(item => item.status === '待跟进' || item.status === '跟进中').length;
+    document.getElementById('pendingCount').textContent = pending;
+    const violations = data.filter(item => item.issueType !== '正常' && item.result === '异常').length;
+    document.getElementById('violationCount').textContent = violations;
+    document.getElementById('listCount').textContent = '共 ' + data.length + ' 条';
+}
+
+// ============================================================
+// 4. 渲染列表
+// ============================================================
+function renderList() {
+    const data = getData();
+    const container = document.getElementById('inspectionList');
+    updateStats();
+
+    if (data.length === 0) {
+        container.innerHTML = '<div class="empty-tip">暂无巡检记录，开始第一次巡检吧 🔍</div>';
+        return;
+    }
+
+    const sorted = [...data].reverse();
+    let html = '';
+    sorted.forEach(function(item) {
+        let levelClass = 'level-first';
+        if (item.violationLevel === '再犯') levelClass = 'level-repeat';
+        else if (item.violationLevel === '严重再犯') levelClass = 'level-serious';
+
+        let statusClass = 'status-pending';
+        let statusText = '待跟进';
+        if (item.status === '已处理') {
+            statusClass = 'status-done';
+            statusText = '已处理';
+        } else if (item.status === '跟进中') {
+            statusClass = 'status-follow';
+            statusText = '跟进中';
+        }
+
+        const resultIcon = item.result === '正常' ? '✅' : '⚠️';
+        const photoHtml = item.photoData ? '<div style="margin-top:6px;"><img src="' + item.photoData + '" style="max-width:80px; max-height:80px; border-radius:4px; border:1px solid #e8ecf1;" /></div>' : '';
+
+        html += '<div class="inspection-item">';
+        html += '    <div class="top-row">';
+        html += '        <div>';
+        html += '            <span class="room-info">' + item.room + '<span class="bed">' + (item.bed ? ' · ' + item.bed : '') + '</span></span>';
+        html += '            <span class="issue-type">' + item.issueType + '</span>';
+        html += '            <span class="violation-level ' + levelClass + '">' + item.violationLevel + '</span>';
+        html += '        </div>';
+        html += '        <div>';
+        html += '            <span class="status-tag ' + statusClass + '">' + statusText + '</span>';
+        html += '            <span style="margin-left:8px;font-size:14px;">' + resultIcon + ' ' + item.result + '</span>';
+        html += '        </div>';
+        html += '    </div>';
+        html += '    <div class="detail-row">';
+        html += '        <span class="label">处理方式：</span>' + item.action;
+        if (item.followUp && item.followUp !== '无') {
+            html += '&nbsp;|&nbsp; <span class="label">跟进：</span>' + item.followUp;
+        }
+        html += '    </div>';
+        html += '    <div class="meta-row">';
+        html += '        <span>👤 ' + item.inspector + '</span>';
+        html += '        <span>📅 ' + item.date + '</span>';
+        html += '        <button class="btn-status" data-id="' + item.id + '" style="background:none;border:1px solid #d0d7de;border-radius:16px;padding:0 12px;font-size:12px;cursor:pointer;color:#4a5a6e;">切换状态</button>';
+        html += '    </div>';
+        html += photoHtml;
+        html += '</div>';
+    });
+
+    container.innerHTML = html;
+
+    document.querySelectorAll('.btn-status').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const id = this.dataset.id;
+            toggleStatus(id);
+        });
+    });
+}
+
+// ============================================================
+// 5. 切换状态
+// ============================================================
+function toggleStatus(id) {
+    const data = getData();
+    const item = data.find(function(d) { return d.id === id; });
+    if (!item) return;
+    const map = { '待跟进': '跟进中', '跟进中': '已处理', '已处理': '待跟进' };
+    item.status = map[item.status] || '待跟进';
+    saveData(data);
+    renderList();
+}
+
+// ============================================================
+// 6. 提交表单
+// ============================================================
+document.getElementById('inspectionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const room = document.getElementById('room').value.trim();
+    const bed = document.getElementById('bed').value.trim();
+    let issueType = document.getElementById('issueType').value;
+    const violationLevel = document.getElementById('violationLevel').value;
+    const action = document.getElementById('action').value;
+    const result = document.getElementById('result').value;
+    const followUp = document.getElementById('followUp').value.trim();
+    const inspector = document.getElementById('inspector').value.trim();
+    let date = document.getElementById('inspectionDate').value;
+
+    // 如果选择了"其他"，取输入框的值
+    if (issueType === '其他') {
+        const otherVal = document.getElementById('otherIssue').value.trim();
+        if (otherVal) {
+            issueType = '其他：' + otherVal;
+        }
+    }
+
+    // 如果选择了"其他处理"，取输入框的值
+    let actionFinal = action;
+    if (action === '其他处理') {
+        const otherActionVal = document.getElementById('otherAction').value.trim();
+        if (otherActionVal) {
+            actionFinal = '其他：' + otherActionVal;
+        }
+    }
+
+    // 获取图片数据
+    const photoData = window._uploadedPhotoData || null;
+
+    if (!room || !issueType || !inspector) {
+        alert('请完整填写房号、问题点和巡检人！');
+        return;
+    }
+
+    if (!date) {
+        const today = new Date();
+        date = today.toISOString().split('T')[0];
+    }
+
+    const newItem = {
+        id: generateId(),
+        room: room,
+        bed: bed || '未指定',
+        issueType: issueType,
+        violationLevel: violationLevel,
+        action: actionFinal,
+        result: result,
+        followUp: followUp || '无',
+        inspector: inspector,
+        date: date,
+        status: result === '正常' ? '已处理' : '待跟进',
+        photoData: photoData,
+        createdAt: new Date().toISOString()
+    };
+
+    const data = getData();
+    data.push(newItem);
+    saveData(data);
+
+    // 清空表单
+    document.getElementById('room').value = '';
+    document.getElementById('bed').value = '';
+    document.getElementById('issueType').value = '';
+    document.getElementById('violationLevel').value = '初犯';
+    document.getElementById('action').value = '初次警告';
+    document.getElementById('result').value = '正常';
+    document.getElementById('followUp').value = '';
+    document.getElementById('inspector').value = '';
+    document.getElementById('otherIssue').value = '';
+    document.getElementById('otherAction').value = '';
+    document.getElementById('otherIssueGroup').style.display = 'none';
+    document.getElementById('otherActionGroup').style.display = 'none';
+    document.getElementById('photoPreview').innerHTML = '';
+    window._uploadedPhotoData = null;
+    document.getElementById('photoupload').value = '';
+
+    renderList();
+    alert('✅ 巡检记录提交成功！');
+});
+
+// 辅助：保存图片数据
+document.addEventListener('DOMContentLoaded', function() {
+    const photoUpload = document.getElementById('photoupload');
+    if (photoUpload) {
+        photoUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    window._uploadedPhotoData = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});  
     </script>
 </body>
 </html>
