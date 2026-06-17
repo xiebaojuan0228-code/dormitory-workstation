@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>日常巡检 - 宿舍后勤</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f6fa;
+            color: #1a2332;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* ===== 顶部导航 ===== */
+        .header {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: #fff;
+            padding: 18px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header a {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .header a:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        /* ===== 统计摘要 ===== */
+        .stats-mini {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stats-mini .stat {
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid #e8ecf1;
+            text-align: center;
+        }
+        .stats-mini .stat .num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a73e8;
+        }
+        .stats-mini .stat .label {
+            font-size: 12px;
+            color: #6b7a8d;
+        }
+
+        /* ===== 表单卡片 ===== */
+        .form-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 28px;
+            border: 1px solid #e8ecf1;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .form-card h2 {
+            font-size: 18px;
+            margin-bottom: 18px;
+            color: #1a2332;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+        .form-group label .required {
+            color: #d93025;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #fafbfc;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1a73e8;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+        .btn {
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #1557b0;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ===== 巡检记录列表 ===== */
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .list-header h2 {
+            font-size: 18px;
+        }
+        .list-header .count {
+            background: #e8ecf1;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #4a5a6e;
+        }
+
+        .inspection-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px 20px;
+            border: 1px solid #e8ecf1;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+        .inspection-item:hover {
+            border-color: #c5d5e8;
+        }
+        .inspection-item .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .inspection-item .room-info {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1a73e8;
+        }
+        .inspection-item .room-info .bed {
+            font-weight: 400;
+            color: #4a5a6e;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        .inspection-item .issue-type {
+            display: inline-block;
+            background: #fce8e6;
+            color: #c62828;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .inspection-item .violation-level {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .level-first {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+        .level-repeat {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .level-serious {
+            background: #fce8e6;
+            color: #c62828;
+        }
+
+        .inspection-item .detail-row {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        .inspection-item .detail-row .label {
+            color: #6b7a8d;
+            font-size: 13px;
+        }
+        .inspection-item .meta-row {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #6b7a8d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .inspection-item .status-tag {
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-pending {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .status-done {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-follow {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        .empty-tip {
+            text-align: center;
+            color: #8a99aa;
+            padding: 40px 0;
+            font-size: 15px;
+        }
+
+        /* ===== 底部 ===== */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 16px;
+            border-top: 1px solid #e8ecf1;
+            color: #8a99aa;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+            .inspection-item .top-row {
+                flex-direction: column;
+            }
+            .header h1 {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ===== 顶部导航 ===== -->
+        <header class="header">
+            <h1>🔍 日常巡检</h1>
+            <a href="https://xiebaojuan0228-code.github.io/dormitory-workstation/">← 返回工作台</a>
+        </header>
+
+        <!-- ===== 统计摘要 ===== -->
+        <div class="stats-mini" id="statsMini">
+            <div class="stat">
+                <div class="num" id="totalCount">0</div>
+                <div class="label">总巡检</div>
+            </div>
+            <div class="stat">
+                <div class="num" id="pendingCount">0</div>
+                <div class="label">待跟进</div>
+            </div>
+            <div class="stat">
+                <div class="num" id="violationCount">0</div>
+                <div class="label">违规记录</div>
+            </div>
+        </div>
+
+        <!-- ===== 巡检表单 ===== -->
+        <div class="form-card">
+            <h2>📝 填写巡检记录</h2>
+            <form id="inspectionForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>宿舍房号 <span class="required">*</span></label>
+                        <input type="text" id="room" placeholder="如：A栋302" required />
+                    </div>
+                    <div class="form-group">
+                        <label>床号</label>
+                        <input type="text" id="bed" placeholder="如：1号床或A床" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>问题点 <span class="required">*</span></label>
+                        <select id="issueType" required>
+                            <option value="">请选择...</option>
+                            <option value="吸烟">🚬 吸烟</option>
+                            <option value="喝酒">🍺 喝酒</option>
+                            <option value="卫生差">🧹 卫生差</option>
+                            <option value="违规用电">⚡ 违规用电</option>
+                            <option value="离宿未断电">🔌 离宿未断电</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>违规次数</label>
+                        <select id="violationLevel">
+                            <option value="初犯">初犯</option>
+                            <option value="再犯">再犯</option>
+                            <option value="严重再犯">严重再犯</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>处理方式</label>
+                        <select id="action">
+                            <option value="初次警告">初次警告</option>
+                            <option value="没收违规物品">没收违规物品</option>
+                            <option value="严重再犯取消住宿">严重再犯取消住宿</option>
+                            <option value="其他处理">其他处理</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>巡检结果</label>
+                        <select id="result">
+                            <option value="正常">✅ 正常</option>
+                            <option value="异常">⚠️ 异常</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>跟进情况</label>
+                    <textarea id="followUp" placeholder="如需跟进，请填写跟进计划或备注..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>巡检人 <span class="required">*</span></label>
+                        <input type="text" id="inspector" placeholder="请输入姓名" required />
+                    </div>
+                    <div class="form-group">
+                        <label>巡检日期</label>
+                        <input type="date" id="inspectionDate" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">📤 提交巡检记录</button>
+            </form>
+        </div>
+
+        <!-- ===== 巡检记录列表 ===== -->
+        <div class="list-header">
+            <h2>📋 巡检记录</h2>
+            <span class="count" id="listCount">共 0 条</span>
+        </div>
+        <div id="inspectionList">
+            <div class="empty-tip">暂无巡检记录，开始第一次巡检吧 🔍</div>
+        </div>
+
+        <footer class="footer">
+            © 2026 宿舍后勤管理系统 · 数据保存在浏览器本地
+        </footer>
+    </div>
+
+    <script>
+        // ============================================================
+        // 1. 数据操作
+        // ============================================================
+        function getData() {
+            const data = localStorage.getItem('dormitory_inspections');
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveData(data) {
+            localStorage.setItem('dormitory_inspections', JSON.stringify(data));
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        }
+
+        // ============================================================
+        // 2. 更新统计
+        // ============================================================
+        function updateStats() {
+            const data = getData();
+            document.getElementById('totalCount').textContent = data.length;
+            const pending = data.filter(item => item.status === '待跟进' || item.status === '跟进中').length;
+            document.getElementById('pendingCount').textContent = pending;
+            const violations = data.filter(item => item.issueType !== '正常' && item.result === '异常').length;
+            document.getElementById('violationCount').textContent = violations;
+            document.getElementById('listCount').textContent = `共 ${data.length} 条`;
+        }
+
+        // ============================================================
+        // 3. 渲染列表
+        // ============================================================
+        function renderList() {
+            const data = getData();
+            const container = document.getElementById('inspectionList');
+            updateStats();
+
+            if (data.length === 0) {
+                container.innerHTML = `<div class="empty-tip">暂无巡检记录，开始第一次巡检吧 🔍</div>`;
+                return;
+            }
+
+            const sorted = [...data].reverse();
+            let html = '';
+            sorted.forEach(item => {
+                // 违规次数样式
+                let levelClass = 'level-first';
+                if (item.violationLevel === '再犯') levelClass = 'level-repeat';
+                else if (item.violationLevel === '严重再犯') levelClass = 'level-serious';
+
+                // 状态样式
+                let statusClass = 'status-pending';
+                let statusText = '待跟进';
+                if (item.status === '已处理') {
+                    statusClass = 'status-done';
+                    statusText = '已处理';
+                } else if (item.status === '跟进中') {
+                    statusClass = 'status-follow';
+                    statusText = '跟进中';
+                }
+
+                // 结果图标
+                const resultIcon = item.result === '正常' ? '✅' : '⚠️';
+
+                html += `
+                        <div class="inspection-item">
+                            <div class="top-row">
+                                <div>
+                                    <span class="room-info">
+                                        ${item.room}
+                                        <span class="bed">${item.bed ? '· ' + item.bed : ''}</span>
+                                    </span>
+                                    <span class="issue-type">${item.issueType}</span>
+                                    <span class="violation-level ${levelClass}">${item.violationLevel}</span>
+                                </div>
+                                <div>
+                                    <span class="status-tag ${statusClass}">${statusText}</span>
+                                    <span style="margin-left:8px;font-size:14px;">${resultIcon} ${item.result}</span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">处理方式：</span>${item.action}
+                                ${item.followUp ? `&nbsp;|&nbsp; <span class="label">跟进：</span>${item.followUp}` : ''}
+                            </div>
+                            <div class="meta-row">
+                                <span>👤 ${item.inspector}</span>
+                                <span>📅 ${item.date}</span>
+                                <span>🆔 ${item.id}</span>
+                                <button class="btn-status" data-id="${item.id}" style="background:none;border:1px solid #d0d7de;border-radius:16px;padding:0 12px;font-size:12px;cursor:pointer;color:#4a5a6e;">切换状态</button>
+                            </div>
+                        </div>
+                    `;
+            });
+
+            container.innerHTML = html;
+
+            document.querySelectorAll('.btn-status').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    toggleStatus(id);
+                });
+            });
+        }
+
+        // ============================================================
+        // 4. 切换状态
+        // ============================================================
+        function toggleStatus(id) {
+            const data = getData();
+            const item = data.find(d => d.id === id);
+            if (!item) return;
+            const map = { '待跟进': '跟进中', '跟进中': '已处理', '已处理': '待跟进' };
+            item.status = map[item.status] || '待跟进';
+            saveData(data);
+            renderList();
+        }
+
+        // ============================================================
+        // 5. 提交表单
+        // ============================================================
+        document.getElementById('inspectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const room = document.getElementById('room').value.trim();
+            const bed = document.getElementById('bed').value.trim();
+            const issueType = document.getElementById('issueType').value;
+            const violationLevel = document.getElementById('violationLevel').value;
+            const action = document.getElementById('action').value;
+            const result = document.getElementById('result').value;
+            const followUp = document.getElementById('followUp').value.trim();
+            const inspector = document.getElementById('inspector').value.trim();
+            let date = document.getElementById('inspectionDate').value;
+
+            if (!room || !issueType || !inspector) {
+                alert('请完整填写房号、问题点和巡检人！');
+                return;
+            }
+
+            if (!date) {
+                const today = new Date();
+                date = today.toISOString().split('T')[0];
+            }
+
+            const newItem = {
+                id: generateId(),
+                room,
+                bed: bed || '未指定',
+                issueType,
+                violationLevel,
+                action,
+                result,
+                followUp: followUp || '无',
+                inspector,
+                date,
+                status: result === '正常' ? '已处理' : '待跟进',
+                createdAt: new Date().toISOString()
+            };
+
+            const data = getData();
+            data.push(newItem);
+            saveData(data);
+
+            // 清空表单（保留部分字段方便连续录入）
+            document.getElementById('room').value = '';
+            document.getElementById('bed').value = '';
+            document.getElementById('issueType').value = '';
+            document.getElementById('followUp').value = '';
+            document.getElementById('inspector').value = '';
+            document.getElementById('inspectionDate').value = '';
+            document.getElementById('result').value = '正常';
+            document.getElementById('violationLevel').value = '初犯';
+            document.getElementById('action').value = '初次警告';
+
+            renderList();
+            alert('✅ 巡检记录提交成功！');
+        });
+
+        // ============================================================
+        // 6. 初始化：设置今日日期
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            document.getElementById('inspectionDate').value = dateStr;
+            renderList();
+        });
+    </script>
+</body>
+</html>
