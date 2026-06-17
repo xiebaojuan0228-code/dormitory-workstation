@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>宿舍后勤工作台</title>
+    <style>
+        /* ===== 全局重置 & 布局 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f6fa;
+            color: #1a2332;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ===== 顶部导航 ===== */
+        .header {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: #fff;
+            padding: 24px 30px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header h1 span {
+            font-weight: 300;
+            font-size: 14px;
+            opacity: 0.8;
+            margin-left: 12px;
+        }
+        .header .date {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 18px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e8ecf1;
+        }
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a73e8;
+        }
+        .stat-card .label {
+            font-size: 13px;
+            color: #6b7a8d;
+            margin-top: 4px;
+        }
+
+        /* ===== 功能模块网格 ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: #fff;
+            padding: 22px 20px;
+            border-radius: 12px;
+            border: 1px solid #e8ecf1;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            transition: transform 0.15s, box-shadow 0.15s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: #c5d5e8;
+        }
+        .card .icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+        .card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .card p {
+            font-size: 13px;
+            color: #6b7a8d;
+            line-height: 1.5;
+        }
+        .card .badge {
+            display: inline-block;
+            margin-top: 10px;
+            background: #eef3fa;
+            color: #1a73e8;
+            font-size: 12px;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+
+        /* ===== 最近动态列表 ===== */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: #1a2332;
+        }
+        .activity-list {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e8ecf1;
+            overflow: hidden;
+        }
+        .activity-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f2f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-item .tag {
+            background: #e8f0fe;
+            color: #1a73e8;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .activity-item .time {
+            color: #8a99aa;
+            font-size: 13px;
+        }
+
+        /* ===== 底部 ===== */
+        .footer {
+            text-align: center;
+            margin-top: 36px;
+            padding-top: 18px;
+            border-top: 1px solid #e8ecf1;
+            color: #8a99aa;
+            font-size: 13px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .header .date {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ===== 顶部导航 ===== -->
+        <header class="header">
+            <h1>🏠 宿舍后勤工作台 <span>v1.0 · 内测</span></h1>
+            <div class="date" id="todayDate"></div>
+        </header>
+
+        <!-- ===== 统计卡片 ===== -->
+        <section class="stats">
+            <div class="stat-card">
+                <div class="number">128</div>
+                <div class="label">总床位</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">112</div>
+                <div class="label">已入住</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">3</div>
+                <div class="label">待处理报修</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">5</div>
+                <div class="label">今日巡检</div>
+            </div>
+        </section>
+
+        <!-- ===== 功能模块（核心入口） ===== -->
+        <section class="grid">
+            <a href="#" class="card">
+                <div class="icon">🛏️</div>
+                <h3>住/退/换宿</h3>
+                <p>办理入住、退宿、调换宿舍</p>
+                <span class="badge">申请中 2 单</span>
+            </a>
+            <a href="#" class="card">
+                <div class="icon">📦</div>
+                <h3>物资采购</h3>
+                <p>宿舍物资申购与库存管理</p>
+                <span class="badge">待采购 3 项</span>
+            </a>
+            <a href="#" class="card">
+                <div class="icon">🔍</div>
+                <h3>日常巡检</h3>
+                <p>公共区域与宿舍巡检登记</p>
+                <span class="badge">今日已完成 5/8</span>
+            </a>
+            <a href="#" class="card">
+                <div class="icon">⚠️</div>
+                <h3>违规登记</h3>
+                <p>宿舍违规行为记录与处理</p>
+                <span class="badge">本月 4 起</span>
+            </a>
+            <a href="#" class="card">
+                <div class="icon">🔧</div>
+                <h3>日常报修</h3>
+                <p>水、电、家具等维修申报</p>
+                <span class="badge">待处理 3 单</span>
+            </a>
+            <a href="#" class="card">
+                <div class="icon">📊</div>
+                <h3>数据看板</h3>
+                <p>宿舍入住率、报修趋势统计</p>
+                <span class="badge">周报</span>
+            </a>
+        </section>
+
+        <!-- ===== 最近动态 ===== -->
+        <h2 class="section-title">📋 最近动态</h2>
+        <div class="activity-list">
+            <div class="activity-item">
+                <span><span class="tag">报修</span> 302 房间 灯管损坏</span>
+                <span class="time">10:30</span>
+            </div>
+            <div class="activity-item">
+                <span><span class="tag">入住</span> 王明 入住 501-2 床位</span>
+                <span class="time">昨天 16:20</span>
+            </div>
+            <div class="activity-item">
+                <span><span class="tag">巡检</span> A栋 3层 消防通道正常</span>
+                <span class="time">昨天 14:00</span>
+            </div>
+            <div class="activity-item">
+                <span><span class="tag">违规</span> 205 房间 违规使用电器</span>
+                <span class="time">昨天 10:15</span>
+            </div>
+            <div class="activity-item">
+                <span><span class="tag">采购</span> 清洁用品 已入库</span>
+                <span class="time">前天 09:40</span>
+            </div>
+        </div>
+
+        <!-- ===== 底部 ===== -->
+        <footer class="footer">
+            © 2026 宿舍后勤管理系统 · 数据仅供内部参考
+        </footer>
+    </div>
+
+    <script>
+        // 显示当天日期
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const weekday = weekdays[now.getDay()];
+        document.getElementById('todayDate').textContent = year + '年' + month + '月' + day + '日 ' + weekday;
+    </script>
+</body>
+</html>
